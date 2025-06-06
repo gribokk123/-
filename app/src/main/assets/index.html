@@ -796,7 +796,7 @@
         let gameState = null;
 
         // WebSocket URL - замените на ваш сервер
-        const WS_URL = 'ws://localhost:3000'; // Для разработки
+        const WS_URL = 'wss://gliterrok-2.onrender.com'; // Ваш актуальный сервер
         // const WS_URL = 'wss://your-render-app.onrender.com'; // Для продакшена
 
         // Инициализация
@@ -826,15 +826,23 @@
         // WebSocket соединение
         function connectWebSocket() {
             try {
+                console.log('🔌 Подключаемся к:', WS_URL);
                 ws = new WebSocket(WS_URL);
 
                 ws.onopen = function() {
                     console.log('✅ WebSocket соединение установлено');
+                    showNotification('Соединение с сервером установлено', 'success');
                 };
 
                 ws.onmessage = function(event) {
-                    const data = JSON.parse(event.data);
-                    handleWebSocketMessage(data);
+                    console.log('📨 Получено сообщение:', event.data);
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleWebSocketMessage(data);
+                    } catch (error) {
+                        console.error('❌ Ошибка парсинга сообщения:', error);
+                        console.error('❌ Сырые данные:', event.data);
+                    }
                 };
 
                 ws.onclose = function() {
@@ -962,11 +970,21 @@
 
         // Отправка сообщения WebSocket
         function sendWebSocketMessage(data) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(data));
-            } else {
-                showNotification('Нет соединения с сервером', 'error');
+          console.log('📤 Отправляем сообщение:', data);
+          
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            try {
+              const message = JSON.stringify(data);
+              console.log('📤 Сырое сообщение:', message);
+              ws.send(message);
+            } catch (error) {
+              console.error('❌ Ошибка отправки сообщения:', error);
+              showNotification('Ошибка отправки сообщения', 'error');
             }
+          } else {
+            console.error('❌ WebSocket не готов. Состояние:', ws ? ws.readyState : 'null');
+            showNotification('Нет соединения с сервером', 'error');
+          }
         }
 
         // Авторизация

@@ -45,47 +45,53 @@ class WebSocketHandler {
   }
 
   async handleMessage(ws, data) {
-    console.log("📨 Получено сообщение:", data.type)
+    console.log("📨 Получено сообщение:", data.type, data)
 
-    switch (data.type) {
-      case "register":
-        await this.handleRegister(ws, data)
-        break
-      case "login":
-        await this.handleLogin(ws, data)
-        break
-      case "getRooms":
-        await this.sendRoomsList(ws)
-        break
-      case "createRoom":
-        await this.createRoom(ws, data.room)
-        break
-      case "joinRoom":
-        await this.joinRoom(ws, data.roomId, data.password)
-        break
-      case "leaveRoom":
-        await this.leaveRoom(ws)
-        break
-      case "chatMessage":
-        await this.handleChatMessage(ws, data)
-        break
-      case "gameAction":
-        await this.handleGameAction(ws, data)
-        break
-      case "updateAvatar":
-        await this.updateAvatar(ws, data.avatar)
-        break
-      case "buyEffect":
-        await this.buyEffect(ws, data.effect)
-        break
-      case "adminAction":
-        await this.handleAdminAction(ws, data)
-        break
-      case "ping":
-        this.send(ws, { type: "pong" })
-        break
-      default:
-        this.sendError(ws, "Неизвестный тип сообщения")
+    try {
+      switch (data.type) {
+        case "register":
+          await this.handleRegister(ws, data)
+          break
+        case "login":
+          await this.handleLogin(ws, data)
+          break
+        case "getRooms":
+          await this.sendRoomsList(ws)
+          break
+        case "createRoom":
+          await this.createRoom(ws, data.room)
+          break
+        case "joinRoom":
+          await this.joinRoom(ws, data.roomId, data.password)
+          break
+        case "leaveRoom":
+          await this.leaveRoom(ws)
+          break
+        case "chatMessage":
+          await this.handleChatMessage(ws, data)
+          break
+        case "gameAction":
+          await this.handleGameAction(ws, data)
+          break
+        case "updateAvatar":
+          await this.updateAvatar(ws, data.avatar)
+          break
+        case "buyEffect":
+          await this.buyEffect(ws, data.effect)
+          break
+        case "adminAction":
+          await this.handleAdminAction(ws, data)
+          break
+        case "ping":
+          this.send(ws, { type: "pong" })
+          break
+        default:
+          console.log("❌ Неизвестный тип сообщения:", data.type, "Данные:", data)
+          this.sendError(ws, `Неизвестный тип сообщения: ${data.type}`)
+      }
+    } catch (error) {
+      console.error("❌ Ошибка обработки сообщения:", error)
+      this.sendError(ws, "Ошибка обработки сообщения: " + error.message)
     }
   }
 
@@ -426,7 +432,7 @@ class WebSocketHandler {
     }
 
     // Передаём действие в игровой движок
-    await this.gameEngine.handleAction(room, user.nickname, data.action, data.target)
+    await this.gameEngine.handleAction(room, user.nickname, data.action.action, data.action.target)
   }
 
   async updateAvatar(ws, avatar) {
