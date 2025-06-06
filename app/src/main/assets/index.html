@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎭 Mafia Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Авторизация */
+        .auth-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        /* Лобби */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .room-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .room-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .room-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-waiting {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-playing {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .room-info {
+            margin-bottom: 15px;
+        }
+
+        .room-players {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .room-creator {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* Игровая комната */
+        .game-room {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            height: 80vh;
+        }
+
+        .game-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-phase {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .game-timer {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .player-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .player-card:hover {
+            transform: scale(1.05);
+        }
+
+        .player-card.dead {
+            opacity: 0.5;
+            background: #f8f9fa;
+        }
+
+        .player-card.selected {
+            border: 3px solid #667eea;
+            background: #e8f0fe;
+        }
+
+        .player-avatar {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .player-nickname {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .player-role {
+            font-size: 0.8em;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .player-status {
+            margin-top: 5px;
+            font-size: 0.8em;
+        }
+
+        .status-alive {
+            color: #27ae60;
+        }
+
+        .status-dead {
+            color: #e74c3c;
+        }
+
+        /* Чат */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            max-height: 400px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .message.system {
+            background: #e3f2fd;
+            color: #1976d2;
+            font-style: italic;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 8px;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            color: #999;
+            float: right;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        /* Профиль пользователя */
+        .user-profile {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-avatar {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .user-nickname {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .user-coins {
+            font-size: 1.2em;
+            color: #f39c12;
+            margin-bottom: 10px;
+        }
+
+        .user-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        /* Магазин */
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .shop-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .shop-item-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .shop-item-price {
+            color: #f39c12;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .shop-item-preview {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        /* Эффекты никнейма */
+        .nickname-rainbow {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 2s ease-in-out infinite;
+        }
+
+        .nickname-glow {
+            text-shadow: 0 0 10px #667eea, 0 0 20px #667eea, 0 0 30px #667eea;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .nickname-shake {
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        .nickname-bounce {
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        .nickname-fade {
+            animation: fade 2s ease-in-out infinite;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #667eea; }
+            to { text-shadow: 0 0 20px #667eea, 0 0 30px #667eea; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fade {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .notification.warning {
+            background: #f39c12;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .game-room {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+
+        /* Админские стили */
+        .admin-badge {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .admin-controls {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .admin-controls h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .admin-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .admin-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Mafia Game</h1>
+            <p>Добро пожаловать в мир интриг и обмана</p>
+        </div>
+
+        <!-- Экран авторизации -->
+        <div id="authScreen" class="card">
+            <div class="auth-form">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 30px;">Вход в игру</h2>
+                
+                <div id="loginForm">
+                    <div class="form-group">
+                        <label for="loginNickname">Никнейм:</label>
+                        <input type="text" id="loginNickname" placeholder="Введите ваш никнейм" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Пароль:</label>
+                        <input type="password" id="loginPassword" placeholder="Введите пароль">
+                    </div>
+                    <button class="btn" onclick="login()">Войти</button>
+                    <button class="btn btn-secondary" onclick="showRegisterForm()">Регистрация</button>
+                </div>
+
+                <div id="registerForm" class="hidden">
+                    <div class="form-group">
+                        <label for="registerNickname">Никнейм:</label>
+                        <input type="text" id="registerNickname" placeholder="Придумайте никнейм (3-20 символов)" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Пароль:</label>
+                        <input type="password" id="registerPassword" placeholder="Придумайте пароль (минимум 4 символа)">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerAvatar">Аватар:</label>
+                        <input type="text" id="registerAvatar" placeholder="Выберите эмодзи (например: 😎)" maxlength="2">
+                    </div>
+                    <div class="form-group">
+                        <label for="avatarFile">Или загрузите изображение:</label>
+                        <input type="file" id="avatarFile" accept="image/*">
+                    </div>
+                    <button class="btn" onclick="register()">Зарегистрироваться</button>
+                    <button class="btn btn-secondary" onclick="showLoginForm()">Назад к входу</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Главное меню -->
+        <div id="mainMenu" class="hidden">
+            <!-- Профиль пользователя -->
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar">👤</div>
+                <div class="user-nickname" id="userNickname">Игрок</div>
+                <div class="user-coins" id="userCoins">💰 0 монет</div>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="userGamesPlayed">0</div>
+                        <div class="stat-label">Игр сыграно</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="userGamesWon">0</div>
+                        <div class="stat-label">Побед</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" onclick="showShop()">🛒 Магазин</button>
+                    <button class="btn btn-secondary" onclick="showSettings()">⚙️ Настройки</button>
+                    <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
+                </div>
+            </div>
+
+            <!-- Админские контролы для Anubis -->
+            <div id="adminControls" class="admin-controls hidden">
+                <h3>👑 Божественные полномочия Anubis</h3>
+                <div class="admin-input">
+                    <input type="text" id="adminTargetUser" placeholder="Никнейм игрока">
+                    <input type="number" id="adminCoinsAmount" placeholder="Количество монет">
+                    <button class="btn btn-success" onclick="adminGiveCoins()">Выдать монеты</button>
+                </div>
+                <div class="admin-input">
+                    <input type="text" id="adminEffectUser" placeholder="Никнейм игрока">
+                    <select id="adminEffectType">
+                        <option value="rainbow">🌈 Радуга</option>
+                        <option value="glow">✨ Свечение</option>
+                        <option value="shake">📳 Тряска</option>
+                        <option value="bounce">⬆️ Подпрыгивание</option>
+                        <option value="fade">👻 Затухание</option>
+                    </select>
+                    <button class="btn btn-success" onclick="adminGiveEffect()">Выдать эффект</button>
+                </div>
+            </div>
+
+            <!-- Список комнат -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>🏠 Игровые комнаты</h2>
+                    <button class="btn" onclick="showCreateRoomForm()">➕ Создать комнату</button>
+                </div>
+                <div id="roomsList" class="rooms-grid">
+                    <!-- Комнаты будут загружены динамически -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Форма создания комнаты -->
+        <div id="createRoomForm" class="card hidden">
+            <h2 style="color: #667eea; margin-bottom: 20px;">Создание новой комнаты</h2>
+            <div class="form-group">
+                <label for="roomName">Название комнаты:</label>
+                <input type="text" id="roomName" placeholder="Введите название комнаты" maxlength="30">
+            </div>
+            <div class="form-group">
+                <label for="roomPassword">Пароль (необязательно):</label>
+                <input type="password" id="roomPassword" placeholder="Оставьте пустым для открытой комнаты">
+            </div>
+            <div class="form-group">
+                <label for="minPlayers">Минимум игроков:</label>
+                <select id="minPlayers">
+                    <option value="4">4 игрока</option>
+                    <option value="5">5 игроков</option>
+                    <option value="6">6 игроков</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="maxPlayers">Максимум игроков:</label>
+                <select id="maxPlayers">
+                    <option value="8">8 игроков</option>
+                    <option value="10" selected>10 игроков</option>
+                    <option value="12">12 игроков</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Дополнительные роли:</label>
+                <div style="margin-top: 10px;">
+                    <label style="display: flex; align-items: center; margin-bottom: 5px;">
+                        <input type="checkbox" id="doctorRole" checked style="margin-right: 10px;">
+                        👨‍⚕️ Доктор
+                    </label>
+                    <label style="display: flex; align-items: center;">
+                        <input type="checkbox" id="loversRole" style="margin-right: 10px;">
+                        💕 Влюблённые
+                    </label>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="createRoom()">Создать комнату</button>
+                <button class="btn btn-secondary" onclick="hideCreateRoomForm()">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Игровая комната -->
+        <div id="gameRoom" class="hidden">
+            <div class="game-room">
+                <div class="game-main">
+                    <!-- Заголовок игры -->
+                    <div class="game-header">
+                        <div class="game-phase" id="gamePhase">Ожидание игроков...</div>
+                        <div class="game-timer" id="gameTimer">--:--</div>
+                        <div id="gameRole" style="margin-top: 10px; font-size: 1.2em;"></div>
+                    </div>
+
+                    <!-- Сетка игроков -->
+                    <div class="players-grid" id="playersGrid">
+                        <!-- Игроки будут загружены динамически -->
+                    </div>
+
+                    <!-- Игровые действия -->
+                    <div id="gameActions" class="card hidden">
+                        <h3 id="actionTitle">Выберите действие</h3>
+                        <div id="actionButtons" style="display: flex; gap: 10px; margin-top: 15px;">
+                            <!-- Кнопки действий будут добавлены динамически -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Чат -->
+                <div class="chat-container">
+                    <div class="card" style="flex: 1; display: flex; flex-direction: column;">
+                        <h3 style="margin-bottom: 15px; color: #667eea;">💬 Чат</h3>
+                        <div class="chat-messages" id="chatMessages">
+                            <!-- Сообщения будут загружены динамически -->
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
+                            <button class="btn" onclick="sendMessage()">Отправить</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопка выхода -->
+                    <button class="btn btn-danger" onclick="leaveRoom()" style="margin-top: 15px;">🚪 Покинуть комнату</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Магазин -->
+        <div id="shopScreen" class="card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>🛒 Магазин эффектов</h2>
+                <button class="btn btn-secondary" onclick="hideShop()">Назад</button>
+            </div>
+            <div class="shop-items">
+                <div class="shop-item">
+                    <div class="shop-item-name">🌈 Радужный никнейм</div>
+                    <div class="shop-item-preview nickname-rainbow">Пример</div>
+                    <div class="shop-item-price">💰 50 монет</div>
+                    <button class="btn" onclick="buyEffect('rainbow', 50)">Купить</button>
+                </div>
+                <div class="shop-item">
+                    <div class="shop-item-name">✨ Светящийся никнейм</div>
+                    <div class="shop-item-preview nickname-glow">Пример</div>
+                    <div class="shop-item-price">💰 30 монет</div>
+                    <button class="btn" onclick="buyEffect('glow', 30)">Купить</button>
+                </div>
+                <div class="shop-item">
+                    <div class="shop-item-name">📳 Трясущийся никнейм</div>
+                    <div class="shop-item-preview nickname-shake">Пример</div>
+                    <div class="shop-item-price">💰 25 монет</div>
+                    <button class="btn" onclick="buyEffect('shake', 25)">Купить</button>
+                </div>
+                <div class="shop-item">
+                    <div class="shop-item-name">⬆️ Подпрыгивающий никнейм</div>
+                    <div class="shop-item-preview nickname-bounce">Пример</div>
+                    <div class="shop-item-price">💰 20 монет</div>
+                    <button class="btn" onclick="buyEffect('bounce', 20)">Купить</button>
+                </div>
+                <div class="shop-item">
+                    <div class="shop-item-name">👻 Затухающий никнейм</div>
+                    <div class="shop-item-preview nickname-fade">Пример</div>
+                    <div class="shop-item-price">💰 15 монет</div>
+                    <button class="btn" onclick="buyEffect('fade', 15)">Купить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let ws = null;
+        let currentUser = null;
+        let currentRoom = null;
+        let selectedPlayer = null;
+        let gameState = null;
+
+        // WebSocket URL - замените на ваш сервер
+        const WS_URL = 'ws://localhost:3000'; // Для разработки
+        // const WS_URL = 'wss://your-render-app.onrender.com'; // Для продакшена
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            connectWebSocket();
+            
+            // Обработчики событий
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            document.getElementById('loginNickname').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        });
+
+        // WebSocket соединение
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket(WS_URL);
+
+                ws.onopen = function() {
+                    console.log('✅ WebSocket соединение установлено');
+                };
+
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                };
+
+                ws.onclose = function() {
+                    console.log('❌ WebSocket соединение закрыто');
+                    showNotification('Соединение с сервером потеряно', 'error');
+                    
+                    // Переподключение через 3 секунды
+                    setTimeout(connectWebSocket, 3000);
+                };
+
+                ws.onerror = function(error) {
+                    console.error('❌ WebSocket ошибка:', error);
+                    showNotification('Ошибка соединения с сервером', 'error');
+                };
+
+            } catch (error) {
+                console.error('❌ Ошибка создания WebSocket:', error);
+                showNotification('Не удалось подключиться к серверу', 'error');
+            }
+        }
+
+        // Обработка сообщений WebSocket
+        function handleWebSocketMessage(data) {
+            console.log('📨 Получено сообщение:', data);
+
+            switch (data.type) {
+                case 'connected':
+                    showNotification(data.message, 'success');
+                    break;
+
+                case 'registerSuccess':
+                    showNotification(data.message, 'success');
+                    showLoginForm();
+                    break;
+
+                case 'loginSuccess':
+                    currentUser = data.user;
+                    showMainMenu();
+                    showNotification(`Добро пожаловать, ${currentUser.nickname}!`, 'success');
+                    break;
+
+                case 'rooms':
+                    updateRoomsList(data.rooms);
+                    break;
+
+                case 'roomJoined':
+                    currentRoom = data.room;
+                    showGameRoom();
+                    updateGameRoom();
+                    break;
+
+                case 'roomUpdated':
+                    if (currentRoom) {
+                        currentRoom = data.room;
+                        updateGameRoom();
+                    }
+                    break;
+
+                case 'gameStarted':
+                    gameState = {
+                        phase: data.phase,
+                        day: data.day || 1,
+                        timeLeft: data.timeLeft || 60
+                    };
+                    updateGameRoom();
+                    showNotification('Игра началась!', 'success');
+                    break;
+
+                case 'gameUpdated':
+                    gameState = data.game;
+                    updateGameRoom();
+                    break;
+
+                case 'gameEnded':
+                    showNotification(data.result, 'warning');
+                    gameState = null;
+                    updateGameRoom();
+                    break;
+
+                case 'chatMessage':
+                    addChatMessage(data);
+                    break;
+
+                case 'effectBought':
+                    currentUser.coins = data.coins;
+                    currentUser.nickname_effects = data.nickname_effects;
+                    updateUserProfile();
+                    showNotification(`Эффект "${data.effect}" куплен!`, 'success');
+                    break;
+
+                case 'avatarUpdated':
+                    currentUser.avatar = data.avatar;
+                    updateUserProfile();
+                    showNotification('Аватар обновлён!', 'success');
+                    break;
+
+                case 'adminActionSuccess':
+                    showNotification(data.message, 'success');
+                    break;
+
+                case 'kicked':
+                    showNotification(`Вы были исключены: ${data.reason}`, 'error');
+                    currentRoom = null;
+                    showMainMenu();
+                    break;
+
+                case 'banned':
+                    showNotification(`Вы были заблокированы: ${data.reason}`, 'error');
+                    currentRoom = null;
+                    showMainMenu();
+                    break;
+
+                case 'error':
+                    showNotification(data.message, 'error');
+                    break;
+
+                case 'pong':
+                    // Ответ на ping
+                    break;
+
+                default:
+                    console.log('Неизвестный тип сообщения:', data.type);
+            }
+        }
+
+        // Отправка сообщения WebSocket
+        function sendWebSocketMessage(data) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(data));
+            } else {
+                showNotification('Нет соединения с сервером', 'error');
+            }
+        }
+
+        // Авторизация
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        function showLoginForm() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        function register() {
+            const nickname = document.getElementById('registerNickname').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const avatar = document.getElementById('registerAvatar').value.trim() || '👤';
+            const avatarFile = document.getElementById('avatarFile').files[0];
+
+            if (!nickname || !password) {
+                showNotification('Заполните все обязательные поля', 'error');
+                return;
+            }
+
+            if (nickname.length < 3 || nickname.length > 20) {
+                showNotification('Никнейм должен быть от 3 до 20 символов', 'error');
+                return;
+            }
+
+            if (password.length < 4) {
+                showNotification('Пароль должен быть минимум 4 символа', 'error');
+                return;
+            }
+
+            // Если есть файл аватарки, загружаем его
+            if (avatarFile) {
+                uploadAvatar(avatarFile, (avatarUrl) => {
+                    sendWebSocketMessage({
+                        type: 'register',
+                        nickname: nickname,
+                        password: password,
+                        avatar: avatarUrl
+                    });
+                });
+            } else {
+                sendWebSocketMessage({
+                    type: 'register',
+                    nickname: nickname,
+                    password: password,
+                    avatar: avatar
+                });
+            }
+        }
+
+        function login() {
+            const nickname = document.getElementById('loginNickname').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!nickname || !password) {
+                showNotification('Введите никнейм и пароль', 'error');
+                return;
+            }
+
+            sendWebSocketMessage({
+                type: 'login',
+                nickname: nickname,
+                password: password
+            });
+        }
+
+        function logout() {
+            currentUser = null;
+            currentRoom = null;
+            gameState = null;
+            showAuthScreen();
+            showNotification('Вы вышли из системы', 'success');
+        }
+
+        // Загрузка аватарки
+        function uploadAvatar(file, callback) {
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            fetch('/api/upload-avatar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    callback(data.avatarUrl);
+                } else {
+                    showNotification('Ошибка загрузки аватарки', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки:', error);
+                showNotification('Ошибка загрузки аватарки', 'error');
+            });
+        }
+
+        // Управление экранами
+        function showAuthScreen() {
+            hideAllScreens();
+            document.getElementById('authScreen').classList.remove('hidden');
+        }
+
+        function showMainMenu() {
+            hideAllScreens();
+            document.getElementById('mainMenu').classList.remove('hidden');
+            updateUserProfile();
+            loadRooms();
+
+            // Показываем админские контролы для Anubis
+            if (currentUser && currentUser.is_admin) {
+                document.getElementById('adminControls').classList.remove('hidden');
+            }
+        }
+
+        function showGameRoom() {
+            hideAllScreens();
+            document.getElementById('gameRoom').classList.remove('hidden');
+        }
+
+        function showShop() {
+            hideAllScreens();
+            document.getElementById('shopScreen').classList.remove('hidden');
+        }
+
+        function hideShop() {
+            showMainMenu();
+        }
+
+        function showSettings() {
+            showNotification('Настройки пока не реализованы', 'warning');
+        }
+
+        function hideAllScreens() {
+            const screens = ['authScreen', 'mainMenu', 'gameRoom', 'shopScreen', 'createRoomForm'];
+            screens.forEach(screen => {
+                document.getElementById(screen).classList.add('hidden');
+            });
+        }
+
+        // Обновление профиля пользователя
+        function updateUserProfile() {
+            if (!currentUser) return;
+
+            document.getElementById('userAvatar').textContent = currentUser.avatar;
+            
+            const nicknameElement = document.getElementById('userNickname');
+            nicknameElement.textContent = currentUser.nickname;
+            
+            // Применяем эффекты никнейма
+            nicknameElement.className = 'user-nickname';
+            if (currentUser.nickname_effects && currentUser.nickname_effects.length > 0) {
+                currentUser.nickname_effects.forEach(effect => {
+                    nicknameElement.classList.add(`nickname-${effect}`);
+                });
+            }
+
+            // Добавляем админский бейдж для Anubis
+            if (currentUser.is_admin) {
+                nicknameElement.innerHTML += '<span class="admin-badge">👑 БОГ</span>';
+            }
+
+            document.getElementById('userCoins').textContent = `💰 ${currentUser.coins} монет`;
+            document.getElementById('userGamesPlayed').textContent = currentUser.games_played || 0;
+            document.getElementById('userGamesWon').textContent = currentUser.games_won || 0;
+        }
+
+        // Комнаты
+        function loadRooms() {
+            sendWebSocketMessage({ type: 'getRooms' });
+        }
+
+        function updateRoomsList(rooms) {
+            const roomsList = document.getElementById('roomsList');
+            roomsList.innerHTML = '';
+
+            if (rooms.length === 0) {
+                roomsList.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1 / -1;">Нет доступных комнат. Создайте первую!</p>';
+                return;
+            }
+
+            rooms.forEach(room => {
+                const roomCard = document.createElement('div');
+                roomCard.className = 'room-card';
+                roomCard.innerHTML = `
+                    <div class="room-header">
+                        <div class="room-name">${room.name}</div>
+                        <div class="room-status ${room.status === 'waiting' ? 'status-waiting' : 'status-playing'}">
+                            ${room.status === 'waiting' ? 'Ожидание' : 'Играют'}
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="room-players">👥 ${room.players}/${room.maxPlayers} игроков</div>
+                        <div class="room-creator">👑 ${room.creator}</div>
+                        ${room.hasPassword ? '<div style="color: #f39c12;">🔒 Приватная</div>' : ''}
+                    </div>
+                    <button class="btn" onclick="joinRoom('${room.id}', ${room.hasPassword})" 
+                            ${room.status !== 'waiting' ? 'disabled' : ''}>
+                        ${room.status === 'waiting' ? 'Присоединиться' : 'Игра идёт'}
+                    </button>
+                `;
+                roomsList.appendChild(roomCard);
+            });
+        }
+
+        function showCreateRoomForm() {
+            hideAllScreens();
+            document.getElementById('createRoomForm').classList.remove('hidden');
+        }
+
+        function hideCreateRoomForm() {
+            showMainMenu();
+        }
+
+        function createRoom() {
+            const name = document.getElementById('roomName').value.trim();
+            const password = document.getElementById('roomPassword').value.trim();
+            const minPlayers = parseInt(document.getElementById('minPlayers').value);
+            const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+            const doctorRole = document.getElementById('doctorRole').checked;
+            const loversRole = document.getElementById('loversRole').checked;
+
+            if (!name) {
+                showNotification('Введите название комнаты', 'error');
+                return;
+            }
+
+            if (name.length > 30) {
+                showNotification('Название комнаты слишком длинное', 'error');
+                return;
+            }
+
+            sendWebSocketMessage({
+                type: 'createRoom',
+                room: {
+                    name: name,
+                    password: password || null,
+                    minPlayers: minPlayers,
+                    maxPlayers: maxPlayers,
+                    roles: {
+                        doctor: doctorRole,
+                        don: true, // Дон всегда есть
+                        lovers: loversRole
+                    }
+                }
+            });
+
+            // Очищаем форму
+            document.getElementById('roomName').value = '';
+            document.getElementById('roomPassword').value = '';
+        }
+
+        function joinRoom(roomId, hasPassword) {
+            let password = null;
+            
+            if (hasPassword) {
+                password = prompt('Введите пароль для комнаты:');
+                if (password === null) return; // Пользователь отменил
+            }
+
+            sendWebSocketMessage({
+                type: 'joinRoom',
+                roomId: roomId,
+                password: password
+            });
+        }
+
+        function leaveRoom() {
+            if (currentRoom) {
+                sendWebSocketMessage({
+                    type: 'leaveRoom'
+                });
+                currentRoom = null;
+                gameState = null;
+                showMainMenu();
+            }
+        }
+
+        // Игровая комната
+        function updateGameRoom() {
+            if (!currentRoom) return;
+
+            // Обновляем заголовок
+            const phaseElement = document.getElementById('gamePhase');
+            const timerElement = document.getElementById('gameTimer');
+            const roleElement = document.getElementById('gameRole');
+
+            if (currentRoom.status === 'waiting') {
+                phaseElement.textContent = 'Ожидание игроков...';
+                timerElement.textContent = '--:--';
+                roleElement.textContent = '';
+            } else if (gameState) {
+                phaseElement.textContent = `${gameState.phase} - День ${gameState.day}`;
+                
+                if (gameState.timeLeft !== undefined) {
+                    const minutes = Math.floor(gameState.timeLeft / 60);
+                    const seconds = gameState.timeLeft % 60;
+                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+
+                // Показываем роль игрока
+                const myPlayer = currentRoom.players.find(p => p.nickname === currentUser.nickname);
+                if (myPlayer && myPlayer.role) {
+                    const roleNames = {
+                        'citizen': '👨‍💼 Мирный житель',
+                        'mafia': '🔫 Мафия',
+                        'don': '👑 Дон мафии',
+                        'doctor': '👨‍⚕️ Доктор',
+                        'lover1': '💕 Влюблённый',
+                        'lover2': '💕 Влюблённая'
+                    };
+                    roleElement.textContent = `Ваша роль: ${roleNames[myPlayer.role] || myPlayer.role}`;
+                }
+            }
+
+            // Обновляем сетку игроков
+            updatePlayersGrid();
+
+            // Обновляем игровые действия
+            updateGameActions();
+        }
+
+        function updatePlayersGrid() {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+
+            if (!currentRoom || !currentRoom.players) return;
+
+            currentRoom.players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                
+                if (!player.isAlive) {
+                    playerCard.classList.add('dead');
+                }
+
+                if (selectedPlayer === player.nickname) {
+                    playerCard.classList.add('selected');
+                }
+
+                // Применяем эффекты никнейма
+                let nicknameClass = '';
+                if (player.nickname === currentUser.nickname && currentUser.nickname_effects) {
+                    currentUser.nickname_effects.forEach(effect => {
+                        nicknameClass += ` nickname-${effect}`;
+                    });
+                }
+
+                playerCard.innerHTML = `
+                    <div class="player-avatar">${player.avatar}</div>
+                    <div class="player-nickname ${nicknameClass}">
+                        ${player.nickname}
+                        ${player.isCreator ? ' 👑' : ''}
+                        ${player.nickname === 'Anubis' ? ' <span class="admin-badge">БОГ</span>' : ''}
+                    </div>
+                    ${player.role ? `<div class="player-role">${getRoleName(player.role)}</div>` : ''}
+                    <div class="player-status ${player.isAlive ? 'status-alive' : 'status-dead'}">
+                        ${player.isAlive ? '✅ Жив' : '💀 Мёртв'}
+                    </div>
+                `;
+
+                // Добавляем обработчик клика для выбора цели
+                if (gameState && player.isAlive && player.nickname !== currentUser.nickname) {
+                    playerCard.style.cursor = 'pointer';
+                    playerCard.onclick = () => selectPlayer(player.nickname);
+                }
+
+                grid.appendChild(playerCard);
+            });
+        }
+
+        function getRoleName(role) {
+            const roleNames = {
+                'citizen': '👨‍💼 Мирный',
+                'mafia': '🔫 Мафия',
+                'don': '👑 Дон',
+                'doctor': '👨‍⚕️ Доктор',
+                'lover1': '💕 Влюблённый',
+                'lover2': '💕 Влюблённая'
+            };
+            return roleNames[role] || role;
+        }
+
+        function selectPlayer(nickname) {
+            selectedPlayer = nickname;
+            updatePlayersGrid();
+        }
+
+        function updateGameActions() {
+            const actionsDiv = document.getElementById('gameActions');
+            const titleElement = document.getElementById('actionTitle');
+            const buttonsDiv = document.getElementById('actionButtons');
+
+            if (!gameState || currentRoom.status !== 'playing') {
+                actionsDiv.classList.add('hidden');
+                return;
+            }
+
+            const myPlayer = currentRoom.players.find(p => p.nickname === currentUser.nickname);
+            if (!myPlayer || !myPlayer.isAlive) {
+                actionsDiv.classList.add('hidden');
+                return;
+            }
+
+            actionsDiv.classList.remove('hidden');
+            buttonsDiv.innerHTML = '';
+
+            if (gameState.phase === 'night') {
+                if (myPlayer.role === 'mafia' || myPlayer.role === 'don') {
+                    titleElement.textContent = 'Выберите цель для убийства';
+                    const killBtn = document.createElement('button');
+                    killBtn.className = 'btn btn-danger';
+                    killBtn.textContent = '🔫 Убить';
+                    killBtn.onclick = () => performAction('kill');
+                    buttonsDiv.appendChild(killBtn);
+                } else if (myPlayer.role === 'doctor') {
+                    titleElement.textContent = 'Выберите кого лечить';
+                    const healBtn = document.createElement('button');
+                    healBtn.className = 'btn btn-success';
+                    healBtn.textContent = '💊 Лечить';
+                    healBtn.onclick = () => performAction('heal');
+                    buttonsDiv.appendChild(healBtn);
+                } else {
+                    titleElement.textContent = 'Ночь... Спите спокойно';
+                }
+            } else if (gameState.phase === 'day') {
+                titleElement.textContent = 'Голосование за исключение';
+                const voteBtn = document.createElement('button');
+                voteBtn.className = 'btn';
+                voteBtn.textContent = '🗳️ Голосовать';
+                voteBtn.onclick = () => performAction('vote');
+                buttonsDiv.appendChild(voteBtn);
+
+                const skipBtn = document.createElement('button');
+                skipBtn.className = 'btn btn-secondary';
+                skipBtn.textContent = '⏭️ Пропустить голос';
+                skipBtn.onclick = () => performAction('skip');
+                buttonsDiv.appendChild(skipBtn);
+            }
+        }
+
+        function performAction(action) {
+            if (!selectedPlayer && action !== 'skip') {
+                showNotification('Выберите цель для действия', 'error');
+                return;
+            }
+
+            sendWebSocketMessage({
+                type: 'gameAction',
+                action: {
+                    action: action,
+                    target: selectedPlayer
+                }
+            });
+
+            selectedPlayer = null;
+            updatePlayersGrid();
+            showNotification(`Действие "${action}" выполнено`, 'success');
+        }
+
+        // Чат
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            if (!currentRoom) {
+                showNotification('Вы не находитесь в комнате', 'error');
+                return;
+            }
+
+            sendWebSocketMessage({
+                type: 'chatMessage',
+                message: message
+            });
+
+            input.value = '';
+        }
+
+        function addChatMessage(data) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            if (data.sender === 'Система') {
+                messageDiv.classList.add('system');
+            }
+
+            const time = new Date(data.timestamp).toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            messageDiv.innerHTML = `
+                <span class="message-sender">${data.sender}:</span>
+                ${data.message}
+                <span class="message-time">${time}</span>
+            `;
+
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            // Ограничиваем количество сообщений
+            while (messagesDiv.children.length > 100) {
+                messagesDiv.removeChild(messagesDiv.firstChild);
+            }
+        }
+
+        // Магазин
+        function buyEffect(effect, price) {
+            if (!currentUser) {
+                showNotification('Вы не авторизованы', 'error');
+                return;
+            }
+
+            if (currentUser.coins < price) {
+                showNotification('Недостаточно монет', 'error');
+                return;
+            }
+
+            if (currentUser.nickname_effects && currentUser.nickname_effects.includes(effect)) {
+                showNotification('У вас уже есть этот эффект', 'warning');
+                return;
+            }
+
+            sendWebSocketMessage({
+                type: 'buyEffect',
+                effect: effect
+            });
+        }
+
+        // Админские функции
+        function adminGiveCoins() {
+            const targetUser = document.getElementById('adminTargetUser').value.trim();
+            const amount = parseInt(document.getElementById('adminCoinsAmount').value);
+
+            if (!targetUser || !amount) {
+                showNotification('Заполните все поля', 'error');
+                return;
+            }
+
+            sendWebSocketMessage({
+                type: 'adminAction',
+                action: 'giveCoins',
+                target: targetUser,
+                amount: amount
+            });
+
+            document.getElementById('adminTargetUser').value = '';
+            document.getElementById('adminCoinsAmount').value = '';
+        }
+
+        function adminGiveEffect() {
+            const targetUser = document.getElementById('adminEffectUser').value.trim();
+            const effect = document.getElementById('adminEffectType').value;
+
+            if (!targetUser || !effect) {
+                showNotification('Заполните все поля', 'error');
+                return;
+            }
+
+            sendWebSocketMessage({
+                type: 'adminAction',
+                action: 'giveEffect',
+                target: targetUser,
+                effect: effect
+            });
+
+            document.getElementById('adminEffectUser').value = '';
+        }
+
+        // Уведомления
+        function showNotification(message, type = 'success') {
+            // Удаляем предыдущие уведомления
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => notification.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            // Автоматически удаляем через 5 секунд
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+
+            // Удаляем по клику
+            notification.onclick = () => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            };
+        }
+
+        // Ping для поддержания соединения
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                sendWebSocketMessage({ type: 'ping' });
+            }
+        }, 30000); // Каждые 30 секунд
+
+        // Обновление таймера игры
+        setInterval(() => {
+            if (gameState && gameState.timeLeft > 0) {
+                gameState.timeLeft--;
+                updateGameRoom();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
